@@ -1,4 +1,4 @@
-package main
+package instances
 
 import (
 	"context"
@@ -12,29 +12,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
-func main() {
-	var (
-		instanceId string
-		err        error
-	)
-	ctx := context.Background()
-	if instanceId, err = createEc2(ctx, "us-east-1"); err != nil {
-		fmt.Printf("Erro é %s", err)
-		os.Exit(1)
-	}
-	fmt.Printf("a instancia é %s\n", instanceId)
-
-}
-
 //criar instancia ec2
-func createEc2(ctx context.Context, region string) (string, error) {
+func CreateEc2(ctx context.Context, region, name, owner, keyname string) (string, error) {
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	if err != nil {
 		return "", fmt.Errorf("unable to load SDK config, %v", err)
 	}
 	ec2Client := ec2.NewFromConfig(cfg)
 	keyPair, err := ec2Client.DescribeKeyPairs(ctx, &ec2.DescribeKeyPairsInput{
-		KeyNames: []string{"aws-key"},
+		KeyNames: []string{keyname},
 	})
 	if err != nil && !strings.Contains(err.Error(), "InvalidKeyPair.NotFound") {
 		return "", fmt.Errorf("describesKeyPair error: %s", err)
@@ -43,13 +29,13 @@ func createEc2(ctx context.Context, region string) (string, error) {
 	if keyPair == nil || len(keyPair.KeyPairs) == 0 {
 		//Criar par de chaves
 		CreatedKeyPair, err := ec2Client.CreateKeyPair(ctx, &ec2.CreateKeyPairInput{
-			KeyName: aws.String("aws-key"),
+			KeyName: aws.String(keyname),
 		})
 		if err != nil {
 			return "", fmt.Errorf("CreateKey error: %s", err)
 		}
 		//Escrever o arquivo da chave para ter acesso a chave
-		err = os.WriteFile("aws-key.pem", []byte(*CreatedKeyPair.KeyMaterial), 0400)
+		err = os.WriteFile(keyname + ".pem", []byte(*CreatedKeyPair.KeyMaterial), 0400)
 		if err != nil {
 			return "", fmt.Errorf("WriteFile error: %s", err)
 		}
@@ -63,14 +49,16 @@ func createEc2(ctx context.Context, region string) (string, error) {
 		Filters: []types.Filter{
 			{
 				Name:   aws.String("name"),
-				Values: []string{"ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20230325"},
+				Values: []string{name},
+				//Values: []string{"ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20230325"},
 			},
 			{
 				Name:   aws.String("virtualization-type"),
 				Values: []string{"hvm"},
 			},
 		},
-		Owners: []string{"099720109477"},
+		Owners: []string{owner},
+		//Owners: []string{"099720109477"},
 	})
 	if err != nil {
 		return "", fmt.Errorf("image error: %s", err)
@@ -81,7 +69,7 @@ func createEc2(ctx context.Context, region string) (string, error) {
 	//Saida da instancia, pegar o id da imagem
 	instanceOutput, err := ec2Client.RunInstances(ctx, &ec2.RunInstancesInput{
 		ImageId:      imageOutput.Images[0].ImageId,
-		KeyName:      aws.String("aws-key"),
+		KeyName:      aws.String(keyname),
 		InstanceType: types.InstanceTypeT2Micro,
 		MinCount:     aws.Int32(1),
 		MaxCount:     aws.Int32(1),
@@ -92,5 +80,18 @@ func createEc2(ctx context.Context, region string) (string, error) {
 	if len(instanceOutput.Instances) == 0 {
 		return "", fmt.Errorf("image length is empty")
 	}
+	fmt.Printf("a instancia é %s\n", *instanceOutput.Instances[0].InstanceId)
 	return *instanceOutput.Instances[0].InstanceId, nil //retorna o id da instancia
+}
+
+func CreateUbuntuInstance(ctx context.Context, region, keyname string) (string, error) {
+	owner := "099720109477"
+	imageName := "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20230325"
+	return CreateEc2(ctx, region, imageName, owner, keyname)
+}
+
+func CreateRedHatInstance(ctx context.Context, region, keyname string) (string, error) {
+	owner := "309956199498"
+	imageName := "RHEL-9.0.0_HVM-20220513-x86_64-0-Hourly2-GP2"
+	return CreateEc2(ctx, region, imageName, owner, keyname)
 }
