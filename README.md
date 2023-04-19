@@ -6,7 +6,9 @@ Esta é uma aplicação CLI desenvolvida em Go para criar instâncias da AWS com
 
 Para executar o programa, basta rodar o seguinte comando:
 
-`go run main.go create-instance [ubuntu/redhat]`
+```bash
+go run main.go create-instance [ubuntu/redhat]
+```
 
 Onde `[ubuntu/redhat]` é um argumento obrigatório que deve ser especificado para escolher o tipo de instância.
 
@@ -14,15 +16,23 @@ Onde `[ubuntu/redhat]` é um argumento obrigatório que deve ser especificado pa
 
 Abaixo está um exemplo completo de comando para criar 3 instâncias Redhat da AWS com a chave chamada "minhachave":
 
-`go run main.go create-instance -n 3 --key-name="minhachave" redhat`
+```bash
+go run main.go create-instance -n 3 --key-name="minhachave" redhat
+```
 
 ## Criando Bucket
 
 É também possível criar uma lista buckets S3 na AWS, através do comando `create-bucket`. E a flag `--public` deixa o bucket livre ao publico. Além de também com o comando `upload-bucket` fazer um upload de um arquivo para uma lista de buckets
 
 Exemplo para criar 2 buckets:
-`go run main.go create-bucket bucket-name45 bucket-otherName`
+
+```bash 
+go run main.go create-bucket bucket-name45 bucket-otherName
+```
 
 Exemplo para fazer upload nos buckets criados:
-`go run main.go upload-bucket README.md bucket-name45 bucket-otherName`
+
+```bash
+go run main.go upload-bucket README.md bucket-name45 bucket-otherName
+```
 
