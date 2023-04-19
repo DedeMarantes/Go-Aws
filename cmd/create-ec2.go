@@ -1,16 +1,13 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/DedeMarantes/aws-go/instances"
+	"github.com/DedeMarantes/aws-go/services"
 	"github.com/spf13/cobra"
 )
 
-var ctx = context.Background()
-
-//Criando comando para criar instancia
+// Criando comando para criar instancia
 func CreateInstance() (*cobra.Command, error) {
 	var (
 		count   int
@@ -25,12 +22,12 @@ func CreateInstance() (*cobra.Command, error) {
 			for i := 0; i < count; i++ {
 				switch args[0] {
 				case "ubuntu":
-					_, err := instances.CreateUbuntuInstance(ctx, "us-east-1", keyname)
+					_, err := services.CreateUbuntuInstance(ctx, "us-east-1", keyname)
 					if err != nil {
 						fmt.Printf("Erro ao criar instancia: %s", err)
 					}
 				case "redhat":
-					_, err := instances.CreateRedHatInstance(ctx, "us-east-1", keyname)
+					_, err := services.CreateRedHatInstance(ctx, "us-east-1", keyname)
 					if err != nil {
 						fmt.Printf("Erro ao criar instancia: %s", err)
 					}
