@@ -33,6 +33,6 @@ go run main.go create-bucket bucket-name45 bucket-otherName
 Exemplo para fazer upload nos buckets criados:
 
 ```bash
-go run main.go upload-bucket README.md bucket-name45 bucket-otherName
+go run main.go upload-bucket [arquivo para upload] [lista buckets pelo nome]
 ```
 
